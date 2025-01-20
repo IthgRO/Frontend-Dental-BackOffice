@@ -7,6 +7,8 @@ import { getAuthToken } from '@/utils/auth'
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import PrivateRoute from './PrivateRoute'
+import ForgotPassword from '@/pages/auth/ForgotPassword'
+import ResetPassword from '@/pages/auth/ResetPassword'
 
 const AutoLoginPage = lazy(() => import('@/pages/auth/AutoLogin'))
 const Login = lazy(() => import('@/pages/auth/Login'))
@@ -24,6 +26,14 @@ const AppRoutes = () => {
       <Routes>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
+          <Route
+            path="/forgot-password"
+            element={token ? <Navigate to="/dashboard" replace /> : <ForgotPassword />}
+          />
+          <Route
+            path="/reset-password"
+            element={token ? <Navigate to="/dashboard" replace /> : <ResetPassword />}
+          />
         </Route>
 
         <Route path="/auto-login" element={<AutoLoginPage />} />
