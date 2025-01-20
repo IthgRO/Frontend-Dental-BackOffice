@@ -23,13 +23,16 @@ const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
 
   const handleLogin = async (values: { email: string; password: string }) => {
     try {
-      await login.mutateAsync(values, {
-        onSuccess: () => {
-          clearError()
-          onSuccess()
-          onClose()
-        },
-      })
+      const { shouldRedirect, redirectUrl } = await login.mutateAsync(values)
+
+      if (shouldRedirect && redirectUrl) {
+        // Redirect to admin app if user is a dentist
+        window.location.href = redirectUrl
+      } else {
+        clearError()
+        onSuccess()
+        onClose()
+      }
     } catch (e) {
       // Error is handled by the auth store
     }

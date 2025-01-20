@@ -16,7 +16,7 @@ interface PasswordFormData {
   confirm_password: string
 }
 
-const ProfilePage = () => {
+const Profile = () => {
   const { user } = useAuthStore()
   const updateProfile = useUpdateProfile()
   const [form] = Form.useForm()
@@ -105,7 +105,7 @@ const ProfilePage = () => {
                     <Input.Password />
                   </Form.Item>
 
-                  <Button type="primary" htmlType="submit">
+                  <Button type="primary" htmlType="submit" loading={updateProfile.isPending}>
                     Change Password
                   </Button>
                 </Form>
@@ -118,4 +118,4 @@ const ProfilePage = () => {
   )
 }
 
-export default ProfilePage
+export default Profile

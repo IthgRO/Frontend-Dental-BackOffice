@@ -1,0 +1,6 @@
+export { default as Appointments } from './appointments/Appointments'
+export { default as Login } from './auth/Login'
+export { default as Dashboard } from './dashboard/Dashboard'
+export { default as Profile } from './profile/Profile'
+export { default as Services } from './services/Services'
+export { default as Settings } from './settings/Settings'

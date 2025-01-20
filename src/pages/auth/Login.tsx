@@ -20,16 +20,24 @@ const LoginPage = () => {
   }, [clearError])
 
   if (token) {
-    const from = (location.state as any)?.from?.pathname || '/my-account'
+    const from = (location.state as any)?.from?.pathname || '/dashboard'
     return <Navigate to={from} replace />
   }
 
   const handleLogin = async (values: { email: string; password: string }) => {
-    await login.mutateAsync(values, {
-      onSuccess: () => {
-        navigate('/my-account')
-      },
-    })
+    try {
+      const { shouldRedirect, redirectUrl } = await login.mutateAsync(values)
+
+      if (shouldRedirect && redirectUrl) {
+        // Redirect to admin app if user is a dentist
+        window.location.href = redirectUrl
+      } else {
+        // Regular user stays on the main site
+        navigate('/dashboard')
+      }
+    } catch (error) {
+      // Error handling is done by the auth store
+    }
   }
 
   return (
@@ -37,7 +45,12 @@ const LoginPage = () => {
       <div className="text-center mb-8">
         <Title level={3}>{t('login.title')}</Title>
       </div>
-      <LoginForm onFinish={handleLogin} isLoading={login.isPending} error={error} />
+      <LoginForm
+        onFinish={handleLogin}
+        isLoading={login.isPending}
+        error={error}
+        showLinks={false}
+      />
     </div>
   )
 }

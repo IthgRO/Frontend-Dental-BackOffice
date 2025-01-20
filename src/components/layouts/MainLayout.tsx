@@ -1,3 +1,5 @@
+// src/components/layouts/MainLayout.tsx
+
 import Header from '@/components/layouts/Header'
 import Sidebar from '@/components/layouts/Sidebar'
 import { Layout } from 'antd'
@@ -11,8 +13,8 @@ const MainLayout = () => {
       <Sidebar />
       <Layout>
         <Header />
-        <Content className="p-6">
-          <div className="bg-white rounded-lg p-6 min-h-full">
+        <Content className="p-4 md:p-6 bg-gray-50">
+          <div className="bg-white rounded-lg p-4 md:p-6 min-h-full shadow">
             <Outlet />
           </div>
         </Content>

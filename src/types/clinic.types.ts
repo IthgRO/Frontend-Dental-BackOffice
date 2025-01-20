@@ -1,12 +1,28 @@
-import { BaseEntity } from './common.types'
+// src/types.ts
 
-export interface Clinic extends BaseEntity {
+export interface Clinic {
+  id: string
   name: string
   address: string
-  city: string
-  country: string
-  timezone: string
-  phone: string
+}
+
+export interface Dentist {
+  id: string
+  name: string
   email: string
-  is_active: boolean
+  phone: string
+  priceRange: {
+    min: number
+    max: number
+  }
+  clinic?: Clinic
+  services?: Service[]
+}
+
+export interface Service {
+  id: string
+  name: string
+  description: string
+  duration: number
+  price: number
 }
