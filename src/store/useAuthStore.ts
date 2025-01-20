@@ -21,7 +21,7 @@ interface AuthState {
   clearError: () => void
 }
 
-const PATIENT_APP_URL = 'http://localhost:5173'
+const PATIENT_APP_URL = import.meta.env.VITE_PATIENT_APP_URL
 
 export const useAuthStore = create<AuthState>()(
   persist(
