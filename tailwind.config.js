@@ -1,11 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+    './node_modules/@fullcalendar/**/*.js', // Add this line
   ],
   theme: {
     extend: {},
   },
   plugins: [],
+  important: true, // This helps override FullCalendar's default styles
 }

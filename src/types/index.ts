@@ -1,5 +1,6 @@
 export * from './appointment.types'
 export * from './auth.types'
+export * from './calendar.types'
 export * from './booking.types'
 export * from './clinic.types'
 export * from './common.types'

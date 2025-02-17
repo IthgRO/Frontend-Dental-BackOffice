@@ -1,3 +1,161 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Calendar container styles */
+.fc {
+  @apply h-full !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .fc .fc-toolbar {
+    @apply flex-col gap-4;
+  }
+
+  .fc .fc-toolbar-title {
+    @apply text-lg;
+  }
+}
+
+/* Time grid styles - smaller slots */
+.fc .fc-timegrid-slot {
+  @apply h-6 border-gray-200 !important;
+}
+
+.fc .fc-timegrid-slot-minor {
+  @apply border-0;
+}
+
+.fc .fc-timegrid-slot-label {
+  @apply text-xs text-gray-500;
+}
+
+/* Column header styles */
+.fc .fc-col-header-cell {
+  @apply bg-gray-50 py-2 border-b border-gray-200;
+}
+
+.fc .fc-col-header-cell-cushion {
+  @apply text-sm font-medium text-gray-700;
+}
+
+/* Event styles with hover effects */
+.fc-event {
+  @apply border-0 rounded-lg shadow-sm transition-transform duration-200 !important;
+  margin: 1px 2px !important;
+}
+
+.fc-event:hover {
+  @apply transform scale-[1.02] z-10 !important;
+}
+
+/* Color schemes */
+.appointment-pink {
+  @apply bg-pink-100 hover:bg-pink-200 !important;
+}
+
+.appointment-green {
+  @apply bg-green-100 hover:bg-green-200 !important;
+}
+
+.appointment-blue {
+  @apply bg-blue-100 hover:bg-blue-200 !important;
+}
+
+/* Hide default event time */
+.fc-event-time {
+  @apply hidden;
+}
+
+/* Break time indicator */
+.break-time {
+  @apply flex items-center justify-center text-xs text-gray-400 py-2;
+}
+
+.break-time::before,
+.break-time::after {
+  content: '';
+  @apply flex-1 h-px bg-gray-200 mx-2;
+}
+
+/* Modern scrollbar */
+.fc-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.fc-scroller::-webkit-scrollbar {
+  @apply w-1.5;
+}
+
+.fc-scroller::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.fc-scroller::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400;
+}
+
+/* Today highlight */
+.fc .fc-day-today {
+  @apply bg-blue-50/30 !important;
+}
+
+/* Grid lines */
+.fc td,
+.fc th {
+  @apply border-gray-200;
+}
+
+/* Now indicator */
+.fc .fc-timegrid-now-indicator-line {
+  @apply border-red-500;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  @apply border-red-500;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 640px) {
+  .fc {
+    @apply text-sm;
+  }
+
+  .fc .fc-toolbar {
+    @apply px-2;
+  }
+
+  .fc .fc-toolbar-title {
+    @apply text-base;
+  }
+
+  .fc-event {
+    @apply text-xs;
+  }
+}
+
+/* Loading state */
+.fc-loading {
+  @apply opacity-50 pointer-events-none;
+}
+
+/* Animation classes */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 200ms ease-in;
+}

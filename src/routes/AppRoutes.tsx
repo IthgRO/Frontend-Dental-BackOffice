@@ -1,4 +1,3 @@
-// src/routes/index.tsx
 import AuthLayout from '@/components/layouts/AuthLayout'
 import MainLayout from '@/components/layouts/MainLayout'
 import LoadingScreen from '@/components/ui/LoadingScreen'
@@ -17,6 +16,8 @@ const Appointments = lazy(() => import('@/pages/appointments/Appointments'))
 const Services = lazy(() => import('@/pages/services/Services'))
 const Profile = lazy(() => import('@/pages/profile/Profile'))
 const Settings = lazy(() => import('@/pages/settings/Settings'))
+const CalendarPage = lazy(() => import('@/pages/calendar/CalendarPage'))
+const Clinic = lazy(() => import('@/pages/clinic/Clinic'))
 
 const AppRoutes = () => {
   const token = getAuthToken()
@@ -51,8 +52,10 @@ const AppRoutes = () => {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/appointments" element={<Appointments />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/services" element={<Services />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/clinic" element={<Clinic />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
 

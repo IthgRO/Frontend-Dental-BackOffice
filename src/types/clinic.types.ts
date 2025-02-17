@@ -1,11 +1,5 @@
 // src/types.ts
 
-export interface Clinic {
-  id: string
-  name: string
-  address: string
-}
-
 export interface Dentist {
   id: string
   name: string
@@ -33,4 +27,29 @@ export interface AvailableService {
 
 export interface DentistService extends Service {
   duration: number
+}
+
+export interface Clinic {
+  name: string
+  address: string
+  city: string
+  country: string
+  timezone: number
+  phone: string
+  email: string
+}
+
+export interface UpdateClinicAddressRequest {
+  address: string
+}
+
+export interface ClinicFormData {
+  address: string
+  picture?: File
+}
+
+export interface ClinicImageDimensions {
+  width: number
+  height: number
+  aspectRatio: number
 }

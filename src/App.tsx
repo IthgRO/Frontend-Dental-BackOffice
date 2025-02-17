@@ -5,14 +5,23 @@ import { BrowserRouter } from 'react-router-dom'
 import i18n from './config/i18n'
 import { queryClient } from './config/queryClient'
 import { AppRoutes } from './routes'
+import { CalendarProvider } from './context/CalendarContext'
+import { DoctorsProvider } from './context/DoctorsContext'
+import { EventsProvider } from './context/EventsContext'
 
 function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AppRoutes />
-          <Toaster position="top-right" />
+          <EventsProvider>
+            <DoctorsProvider>
+              <CalendarProvider>
+                <AppRoutes />
+                <Toaster position="top-right" />
+              </CalendarProvider>
+            </DoctorsProvider>
+          </EventsProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </I18nextProvider>

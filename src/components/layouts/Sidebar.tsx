@@ -1,5 +1,3 @@
-// src/components/layouts/Sidebar.tsx
-
 import { useAuthStore } from '@/store/useAuthStore'
 import {
   CalendarOutlined,
@@ -7,6 +5,8 @@ import {
   MedicineBoxOutlined,
   SettingOutlined,
   UserOutlined,
+  ScheduleOutlined,
+  BankOutlined,
 } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -30,9 +30,19 @@ const Sidebar = () => {
       label: 'Appointments',
     },
     {
+      key: '/calendar',
+      icon: <ScheduleOutlined />,
+      label: 'Calendar',
+    },
+    {
       key: '/services',
       icon: <MedicineBoxOutlined />,
       label: 'Services',
+    },
+    {
+      key: '/clinic',
+      icon: <BankOutlined />,
+      label: 'Clinic',
     },
     {
       key: '/profile',
