@@ -1,3 +1,4 @@
+// src/pages/auth/Login.tsx
 import { LoginForm } from '@/components/features/auth/LoginForm'
 import { useAppTranslation } from '@/hooks/useAppTranslation'
 import { useAuth } from '@/hooks/useAuth'
@@ -10,7 +11,7 @@ const { Title } = Typography
 
 const LoginPage = () => {
   const { t } = useAppTranslation('auth')
-  const { login } = useAuth()
+  const { sendDoctorLoginCode } = useAuth()
   const { token, error, clearError } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
@@ -26,17 +27,12 @@ const LoginPage = () => {
 
   const handleLogin = async (values: { email: string; password: string }) => {
     try {
-      const { shouldRedirect, redirectUrl } = await login.mutateAsync(values)
-
-      if (shouldRedirect && redirectUrl) {
-        // Redirect to admin app if user is a dentist
-        window.location.href = redirectUrl
-      } else {
-        // Regular user stays on the main site
-        navigate('/dashboard')
-      }
+      await sendDoctorLoginCode.mutateAsync(values)
+      navigate('/doctor-code-confirmation', {
+        state: { email: values.email, password: values.password },
+      })
     } catch (error) {
-      // Error handling is done by the auth store
+      // Error handling is done by the mutation
     }
   }
 
@@ -47,7 +43,7 @@ const LoginPage = () => {
       </div>
       <LoginForm
         onFinish={handleLogin}
-        isLoading={login.isPending}
+        isLoading={sendDoctorLoginCode.isPending}
         error={error}
         showLinks={false}
       />

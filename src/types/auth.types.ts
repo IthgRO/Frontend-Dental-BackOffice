@@ -26,6 +26,17 @@ export interface RegisterRequest {
   password: string
 }
 
+export interface DoctorLoginResponse {
+  message: string
+  requiresCode: boolean
+}
+
+export interface DoctorCodeLoginRequest {
+  email: string
+  password: string
+  code: string
+}
+
 export interface AuthState {
   token: string | null
   user: User | null

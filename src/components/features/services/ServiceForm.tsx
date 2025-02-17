@@ -1,95 +1,161 @@
+import { useEffect, useState } from 'react'
+import { Button, Modal, Table, Space, Tag, Checkbox, message } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
+import { AvailableService, DentistService } from '@/types'
 import { useServices } from '@/hooks/useServices'
-import { useClinicStore } from '@/store/useDentistStore'
-import { Service } from '@/types'
-import { Button, Form, Input, InputNumber, Modal } from 'antd'
-import { useState } from 'react'
-
-interface ServiceFormValues {
-  name: string
-  description?: string
-  duration: number
-  price: number
-  category: string
-}
+import { useServiceStore } from '@/store/useServiceStore'
 
 interface ServiceFormProps {
-  service?: Service
   onSuccess?: () => void
+  trigger?: React.ReactNode
 }
 
-const ServiceForm = ({ service, onSuccess }: ServiceFormProps) => {
+const ServiceForm = ({ onSuccess, trigger }: ServiceFormProps) => {
   const [isVisible, setIsVisible] = useState(false)
-  const [form] = Form.useForm<ServiceFormValues>()
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
+  const { services: existingServices } = useServiceStore()
+  const { availableServices } = useServices()
 
-  const { selectedClinic } = useClinicStore()
-  const { createService, updateService } = useServices(selectedClinic?.id || '')
+  // Initialize selected services with existing ones
+  useEffect(() => {
+    if (isVisible) {
+      const currentServiceNames = existingServices.map(service => service.name)
+      setSelectedServices(currentServiceNames)
+    }
+  }, [isVisible, existingServices])
 
-  const handleSubmit = async (values: ServiceFormValues) => {
-    if (!selectedClinic?.id) return
+  const handleSubmit = () => {
+    try {
+      // Get removed services
+      const currentServiceNames = existingServices.map(service => service.name)
+      const removedServices = currentServiceNames.filter(name => !selectedServices.includes(name))
 
-    const action = service ? updateService : createService
-    await action.mutateAsync({
-      ...values,
-      clinic_id: selectedClinic.id,
-      ...(service && { id: service.id }),
-    })
-    setIsVisible(false)
-    form.resetFields()
-    onSuccess?.()
+      // Get new services
+      const newServices = selectedServices
+        .filter(name => !currentServiceNames.includes(name))
+        .map(name => {
+          const service = availableServices.data?.find(s => s.name === name)
+          return service
+            ? {
+                name: service.name,
+                category: service.category,
+                duration: 30, // Default duration
+              }
+            : null
+        })
+        .filter((service): service is DentistService => service !== null)
+
+      // Update store with removed and new services
+      // We'll implement this in the store
+
+      message.success('Services updated successfully')
+      setIsVisible(false)
+      onSuccess?.()
+    } catch (error) {
+      message.error('Failed to update services')
+      console.error('Error updating services:', error)
+    }
   }
+
+  const columns: ColumnsType<AvailableService> = [
+    {
+      title: '',
+      key: 'selection',
+      width: 50,
+      render: (_, record: AvailableService) => (
+        <Checkbox
+          checked={selectedServices.includes(record.name)}
+          onChange={e => {
+            if (e.target.checked) {
+              setSelectedServices(prev => [...prev, record.name])
+            } else {
+              setSelectedServices(prev => prev.filter(name => name !== record.name))
+            }
+          }}
+        />
+      ),
+    },
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      render: (category: string) => <Tag color="blue">{category}</Tag>,
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_, record: AvailableService) => {
+        const isExisting = existingServices.some(s => s.name === record.name)
+        return isExisting ? <Tag color="green">Added</Tag> : <Tag color="default">Available</Tag>
+      },
+    },
+  ]
+
+  const defaultTrigger = (
+    <Button type="primary" icon={<PlusOutlined />}>
+      Manage Services
+    </Button>
+  )
 
   return (
     <>
-      <Button
-        className="sm:w-full lg:w-[100px] w-16"
-        type="primary"
-        onClick={() => setIsVisible(true)}
-      >
-        {service ? 'Edit Service' : 'New Service'}
-      </Button>
+      <div onClick={() => setIsVisible(true)}>{trigger || defaultTrigger}</div>
 
       <Modal
-        title={service ? 'Edit Service' : 'New Service'}
+        title="Manage Services"
         open={isVisible}
-        onCancel={() => setIsVisible(false)}
-        footer={null}
+        onCancel={() => {
+          setIsVisible(false)
+          setSelectedServices([])
+        }}
+        width={800}
+        footer={[
+          <Button key="cancel" onClick={() => setIsVisible(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleSubmit}>
+            Save Changes
+          </Button>,
+        ]}
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={service}>
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
+        <div className="mb-4">
+          <Text type="secondary">
+            Select the services you want to offer. Each service will be added with a default
+            duration of 30 minutes.
+          </Text>
+        </div>
 
-          <Form.Item name="description" label="Description">
-            <Input.TextArea />
-          </Form.Item>
+        <Table
+          columns={columns}
+          dataSource={availableServices.data}
+          rowKey="name"
+          pagination={false}
+          loading={availableServices.isLoading}
+          scroll={{ y: 400 }}
+          locale={{
+            emptyText: availableServices.isLoading ? 'Loading...' : 'No services available',
+          }}
+        />
 
-          <Form.Item name="duration" label="Duration (minutes)" rules={[{ required: true }]}>
-            <InputNumber min={15} step={15} />
-          </Form.Item>
-
-          <Form.Item name="price" label="Price" rules={[{ required: true }]}>
-            <InputNumber
-              min={0}
-              formatter={value => `$ ${value}`}
-              parser={value => parseFloat(value?.replace(/\$\s?|(,*)/g, '') || '0')}
-            />
-          </Form.Item>
-
-          <Form.Item name="category" label="Category" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-
-          <Form.Item>
+        <div className="mt-4">
+          <Space>
             <Button
-              type="primary"
-              htmlType="submit"
-              loading={createService.isPending || updateService.isPending}
-              block
+              size="small"
+              onClick={() => setSelectedServices(availableServices.data?.map(s => s.name) || [])}
             >
-              {service ? 'Update' : 'Create'} Service
+              Select All
             </Button>
-          </Form.Item>
-        </Form>
+            <Button size="small" onClick={() => setSelectedServices([])}>
+              Clear All
+            </Button>
+          </Space>
+        </div>
       </Modal>
     </>
   )

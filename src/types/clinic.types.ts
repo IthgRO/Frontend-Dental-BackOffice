@@ -22,7 +22,15 @@ export interface Dentist {
 export interface Service {
   id: string
   name: string
-  description: string
+  category: string
+  duration?: number
+}
+
+export interface AvailableService {
+  name: string
+  category: string
+}
+
+export interface DentistService extends Service {
   duration: number
-  price: number
 }

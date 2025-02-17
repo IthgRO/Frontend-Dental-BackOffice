@@ -1,5 +1,4 @@
 // src/routes/index.tsx
-
 import AuthLayout from '@/components/layouts/AuthLayout'
 import MainLayout from '@/components/layouts/MainLayout'
 import LoadingScreen from '@/components/ui/LoadingScreen'
@@ -7,11 +6,12 @@ import { getAuthToken } from '@/utils/auth'
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import PrivateRoute from './PrivateRoute'
-import ForgotPassword from '@/pages/auth/ForgotPassword'
-import ResetPassword from '@/pages/auth/ResetPassword'
 
 const AutoLoginPage = lazy(() => import('@/pages/auth/AutoLogin'))
 const Login = lazy(() => import('@/pages/auth/Login'))
+const DoctorCodeConfirmation = lazy(() => import('@/pages/auth/DoctorCodeConfirmation'))
+const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'))
+const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'))
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'))
 const Appointments = lazy(() => import('@/pages/appointments/Appointments'))
 const Services = lazy(() => import('@/pages/services/Services'))
@@ -26,6 +26,10 @@ const AppRoutes = () => {
       <Routes>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
+          <Route
+            path="/doctor-code-confirmation"
+            element={token ? <Navigate to="/dashboard" replace /> : <DoctorCodeConfirmation />}
+          />
           <Route
             path="/forgot-password"
             element={token ? <Navigate to="/dashboard" replace /> : <ForgotPassword />}

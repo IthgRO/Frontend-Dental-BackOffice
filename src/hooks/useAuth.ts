@@ -1,24 +1,26 @@
 // src/hooks/useAuth.ts
-
 import { useAppTranslation } from '@/hooks/useAppTranslation'
 import { useAuthStore } from '@/store/useAuthStore'
-import { LoginRequest, RegisterRequest } from '@/types'
+import { LoginRequest, DoctorCodeLoginRequest } from '@/types'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
 export const useAuth = () => {
   const { t } = useAppTranslation('auth')
-  const { login: loginStore, register: registerStore, logout: logoutStore } = useAuthStore()
+  const {
+    login: loginStore,
+    logout: logoutStore,
+    sendDoctorLoginCode: sendDoctorLoginCodeStore,
+    loginWithCode: loginWithCodeStore,
+  } = useAuthStore()
 
   const login = useMutation({
-    // Our store login function returns { shouldRedirect: boolean, redirectUrl?: string }
     mutationFn: async (credentials: LoginRequest) => {
       return await loginStore(credentials)
     },
     onSuccess: response => {
       toast.success(t('notifications.login.success'))
 
-      // If the store wants us to redirect, do so:
       if (response.shouldRedirect && response.redirectUrl) {
         window.location.href = response.redirectUrl
       }
@@ -32,18 +34,28 @@ export const useAuth = () => {
     },
   })
 
-  const register = useMutation({
-    mutationFn: (data: RegisterRequest) => registerStore(data),
+  const sendDoctorLoginCode = useMutation({
+    mutationFn: (credentials: LoginRequest) => sendDoctorLoginCodeStore(credentials),
     onSuccess: () => {
-      toast.success(t('notifications.register.success'))
+      toast.success(t('notifications.login.codeSent'))
+    },
+    onError: (error: any) => {
+      toast.error(t('notifications.login.error'))
+    },
+  })
+
+  const loginWithCode = useMutation({
+    mutationFn: (data: DoctorCodeLoginRequest) => loginWithCodeStore(data),
+    onSuccess: () => {
+      toast.success(t('notifications.login.codeVerified'))
     },
     onError: (error: any) => {
       const errorMessage =
-        error.response?.data?.message === 'Email already exists'
-          ? t('notifications.register.emailExists')
-          : error.response?.data?.message === 'Invalid data'
-            ? t('notifications.register.invalidData')
-            : t('notifications.register.error')
+        error.response?.data?.message === 'Invalid code'
+          ? t('notifications.login.invalidCode')
+          : error.response?.data?.message === 'Code expired'
+            ? t('notifications.login.codeExpired')
+            : t('notifications.login.codeError')
       toast.error(errorMessage)
     },
   })
@@ -55,8 +67,9 @@ export const useAuth = () => {
 
   return {
     login,
-    register,
     logout,
-    isLoading: login.isPending || register.isPending,
+    sendDoctorLoginCode,
+    loginWithCode,
+    isLoading: login.isPending || sendDoctorLoginCode.isPending || loginWithCode.isPending,
   }
 }

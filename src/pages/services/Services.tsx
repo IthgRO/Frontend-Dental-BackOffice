@@ -1,103 +1,183 @@
-// src/pages/services/Services.tsx
-
-import ServiceForm from '@/components/features/services/ServiceForm'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button, Modal, Select, Space, Table, Tag, message, Checkbox } from 'antd'
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
+import { AvailableService, DentistService } from '@/types'
+import { useServiceStore } from '@/store/useServiceStore'
+import { useServices } from '@/hooks/useServices'
 import PageHeader from '@/components/ui/PageHeader'
-import { useClinicStore } from '@/store/useDentistStore'
-import { Service } from '@/types'
-import { Button, Card, Space, Table } from 'antd'
-import { useState } from 'react'
-
-// Mock in-memory services
-let DUMMY_SERVICES: Service[] = [
-  {
-    id: 1,
-    name: 'Cleaning',
-    description: 'Basic teeth cleaning',
-    duration: 30,
-    price: 50,
-  },
-  {
-    id: 2,
-    name: 'Filling',
-    description: 'Cavity filling',
-    duration: 45,
-    price: 120,
-  },
-  {
-    id: 3,
-    name: 'Whitening',
-    description: 'Teeth whitening procedure',
-    duration: 60,
-    price: 200,
-  },
-]
-
-// A quick local hook to simulate fetching + deleting
-function useServices(clinicId: string) {
-  // We'll just ignore the clinicId for now and return all
-  const [services, setServices] = useState(DUMMY_SERVICES)
-  const [isPending, setIsPending] = useState(false)
-
-  const deleteService = {
-    isPending,
-    mutate: (id: number) => {
-      setIsPending(true)
-      setTimeout(() => {
-        DUMMY_SERVICES = DUMMY_SERVICES.filter(s => s.id !== id)
-        setServices([...DUMMY_SERVICES])
-        setIsPending(false)
-      }, 800)
-    },
-  }
-
-  return {
-    services: { data: services, isLoading: false },
-    deleteService,
-  }
-}
 
 const Services = () => {
-  const { selectedClinic } = useClinicStore()
-  // Provide selectedClinic?.id or ''
-  const { services, deleteService } = useServices(selectedClinic?.id || '')
+  const navigate = useNavigate()
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
+  const [initialSelectedServices, setInitialSelectedServices] = useState<string[]>([])
+  const { dentistServices, availableServices, updateServices } = useServices()
+  const {
+    services,
+    unsavedChanges,
+    setServices,
+    addServices,
+    removeService,
+    updateServiceDuration,
+    clearUnsavedChanges,
+  } = useServiceStore()
 
-  const columns = [
+  useEffect(() => {
+    if (dentistServices.data) {
+      setServices(dentistServices.data)
+    }
+  }, [dentistServices.data, setServices])
+
+  const handleModalOpen = () => {
+    const currentServices = services.map(service => service.name)
+    setSelectedServices(currentServices)
+    setInitialSelectedServices(currentServices)
+    setIsAddModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsAddModalOpen(false)
+    setSelectedServices([])
+    setInitialSelectedServices([])
+  }
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (unsavedChanges) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [unsavedChanges])
+
+  const handleSave = async () => {
+    try {
+      await updateServices.mutateAsync(services)
+      clearUnsavedChanges()
+      message.success('Services updated successfully')
+    } catch (error) {
+      message.error('Failed to update services')
+    }
+  }
+
+  const handleRemoveService = (serviceToRemove: DentistService) => {
+    removeService(serviceToRemove.name)
+    message.success(`${serviceToRemove.name} removed`)
+  }
+
+  const handleAddServices = () => {
+    // Remove all existing services that are not selected anymore
+    services.forEach(service => {
+      if (!selectedServices.includes(service.name)) {
+        removeService(service.name)
+      }
+    })
+
+    // Add newly selected services
+    const newServices = selectedServices
+      .filter(name => !services.some(s => s.name === name))
+      .map(name => {
+        const service = availableServices.data?.find(s => s.name === name)
+        return service
+          ? {
+              name: service.name,
+              category: service.category,
+              duration: 30,
+            }
+          : null
+      })
+      .filter((service): service is DentistService => service !== null)
+
+    if (newServices.length > 0) {
+      addServices(newServices)
+    }
+
+    message.success('Services updated successfully')
+    handleModalClose()
+  }
+
+  const durationOptions = Array.from({ length: 8 }, (_, i) => ({
+    value: (i + 1) * 30,
+    label: `${(i + 1) * 30} minutes`,
+  }))
+
+  const columns: ColumnsType<DentistService> = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      render: (category: string) => <Tag color="blue">{category}</Tag>,
     },
     {
-      title: 'Duration (min)',
+      title: 'Duration',
       dataIndex: 'duration',
       key: 'duration',
-    },
-    {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
-      render: (price: number) => `$${price}`,
+      width: 200,
+      render: (duration: number, record: DentistService) => (
+        <Select
+          value={duration}
+          onChange={(value: number) => {
+            updateServiceDuration(record.name, value)
+            message.success('Duration updated')
+          }}
+          options={durationOptions}
+          style={{ width: 150 }}
+        />
+      ),
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (record: Service) => (
-        <Space>
-          <ServiceForm service={record} services={services.data} setServicesFn={() => null} />
-          <Button
-            danger
-            onClick={() => deleteService.mutate(record.id)}
-            loading={deleteService.isPending}
-          >
-            Delete
-          </Button>
-        </Space>
+      width: 100,
+      render: (_, record: DentistService) => (
+        <Button
+          type="text"
+          icon={<DeleteOutlined />}
+          danger
+          onClick={() => handleRemoveService(record)}
+        />
       ),
+    },
+  ]
+
+  const modalColumns: ColumnsType<AvailableService> = [
+    {
+      title: '',
+      key: 'selection',
+      width: 50,
+      render: (_, record: AvailableService) => (
+        <Checkbox
+          checked={selectedServices.includes(record.name)}
+          onChange={e => {
+            if (e.target.checked) {
+              setSelectedServices(prev => [...prev, record.name])
+            } else {
+              setSelectedServices(prev => prev.filter(name => name !== record.name))
+            }
+          }}
+        />
+      ),
+    },
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      render: (category: string) => <Tag color="blue">{category}</Tag>,
     },
   ]
 
@@ -105,18 +185,49 @@ const Services = () => {
     <div className="space-y-4">
       <PageHeader
         title="Services"
-        action={<ServiceForm services={services.data} setServicesFn={() => null} />}
+        action={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleModalOpen}>
+            Add Services
+          </Button>
+        }
       />
 
-      <Card>
+      <Table
+        columns={columns}
+        dataSource={services}
+        rowKey={record => `${record.name}-${record.category}`}
+        loading={dentistServices.isLoading}
+        className="bg-white rounded-lg shadow"
+        locale={{ emptyText: 'No services found' }}
+        pagination={false}
+      />
+
+      {unsavedChanges && (
+        <div className="fixed bottom-4 right-4 left-4 bg-white p-4 shadow-lg rounded-lg">
+          <Space className="w-full justify-end">
+            <Button onClick={() => navigate(-1)}>Discard Changes</Button>
+            <Button type="primary" onClick={handleSave} loading={updateServices.isPending}>
+              Save Changes
+            </Button>
+          </Space>
+        </div>
+      )}
+
+      <Modal
+        title="Add Services"
+        open={isAddModalOpen}
+        onCancel={handleModalClose}
+        onOk={handleAddServices}
+        width={600}
+      >
         <Table
-          columns={columns}
-          dataSource={services.data}
-          loading={services.isLoading}
-          rowKey="id"
-          className="w-full"
+          columns={modalColumns}
+          dataSource={availableServices.data}
+          rowKey={record => `${record.name}-${record.category}`}
+          pagination={false}
+          scroll={{ y: 400 }}
         />
-      </Card>
+      </Modal>
     </div>
   )
 }

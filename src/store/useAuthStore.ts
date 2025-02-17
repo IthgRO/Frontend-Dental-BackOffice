@@ -1,7 +1,6 @@
 // src/store/useAuthStore.ts
-
 import { authService } from '@/services/auth.service'
-import { LoginRequest, RegisterRequest, User } from '@/types'
+import { LoginRequest, DoctorCodeLoginRequest, User } from '@/types'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
@@ -16,7 +15,8 @@ interface AuthState {
     shouldRedirect: boolean
     redirectUrl?: string
   }>
-  register: (userData: RegisterRequest) => Promise<void>
+  sendDoctorLoginCode: (credentials: LoginRequest) => Promise<void>
+  loginWithCode: (data: DoctorCodeLoginRequest) => Promise<void>
   logout: () => void
   clearError: () => void
 }
@@ -40,11 +40,11 @@ export const useAuthStore = create<AuthState>()(
           const response = await authService.login(credentials)
           const { jwt: token } = response
 
-          // Decode
+          // Decode token
           const decodedToken = JSON.parse(atob(token.split('.')[1]))
           const role = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
 
-          // If user is not Dentist => redirect to 5173 with ?token=...
+          // If user is not Dentist => redirect to patient app with token
           if (role !== 'Dentist') {
             return {
               shouldRedirect: true,
@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>()(
             }
           }
 
-          // Otherwise store data
+          // Store token and user data
           localStorage.setItem('auth_token', token)
           set({
             token,
@@ -78,14 +78,46 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (userData: RegisterRequest) => {
+      sendDoctorLoginCode: async (credentials: LoginRequest) => {
         set({ isLoading: true, error: null })
         try {
-          await authService.register(userData)
+          await authService.sendDoctorLoginCode(credentials)
           set({ isLoading: false })
         } catch (err: any) {
           set({
-            error: err.response?.data?.message || 'Registration failed',
+            error: err.response?.data?.message || 'Failed to send login code',
+            isLoading: false,
+          })
+          throw err
+        }
+      },
+
+      loginWithCode: async (data: DoctorCodeLoginRequest) => {
+        set({ isLoading: true, error: null })
+        try {
+          const response = await authService.loginWithCode(data)
+          const { jwt: token } = response
+
+          // Store token and user data
+          localStorage.setItem('auth_token', token)
+          const decodedToken = JSON.parse(atob(token.split('.')[1]))
+
+          set({
+            token,
+            user: {
+              id: decodedToken['http://schemas.xmlsoap.org/ws/2009/09/identity/claims/actor'],
+              firstName: response.firstName,
+              lastName: response.lastName,
+              email: response.email,
+              phone: response.phone,
+              role: decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+            },
+            isLoading: false,
+            error: null,
+          })
+        } catch (err: any) {
+          set({
+            error: err.response?.data?.message || 'Login failed',
             isLoading: false,
           })
           throw err

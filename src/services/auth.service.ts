@@ -2,16 +2,6 @@ import { LoginRequest, LoginResponse, RegisterRequest } from '@/types'
 import apiClient from './apiClient'
 
 export const authService = {
-  login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    try {
-      const response = await apiClient.post<LoginResponse>('/user/login', credentials)
-      return response.data
-    } catch (error: any) {
-      console.error('Login error:', error.response?.data || error.message)
-      throw error
-    }
-  },
-
   register: async (userData: RegisterRequest) => {
     try {
       const response = await apiClient.post('/user/register', userData)
@@ -48,6 +38,30 @@ export const authService = {
       return response.data
     } catch (error: any) {
       console.error('Get user profile error:', error.response?.data || error.message)
+      throw error
+    }
+  },
+
+  sendDoctorLoginCode: async (credentials: LoginRequest) => {
+    try {
+      const response = await apiClient.post('/dentist/sendDoctorLoginCode', credentials)
+      return response.data
+    } catch (error: any) {
+      console.error('Send doctor login code error:', error.response?.data || error.message)
+      throw error
+    }
+  },
+
+  loginWithCode: async (data: {
+    email: string
+    password: string
+    code: string
+  }): Promise<LoginResponse> => {
+    try {
+      const response = await apiClient.post<LoginResponse>('/dentist/loginWithCode', data)
+      return response.data
+    } catch (error: any) {
+      console.error('Login with code error:', error.response?.data || error.message)
       throw error
     }
   },

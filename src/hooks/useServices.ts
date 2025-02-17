@@ -1,35 +1,29 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { serviceService } from '@/services/service.service'
-import { Service } from '@/types'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-export const useServices = (clinicId: string) => {
+export const useServices = () => {
   const queryClient = useQueryClient()
 
-  const services = useQuery({
-    queryKey: ['services', clinicId],
-    queryFn: () => serviceService.getServices(clinicId),
+  const dentistServices = useQuery({
+    queryKey: ['dentist-services'],
+    queryFn: serviceService.getDentistServices,
   })
 
-  const createService = useMutation({
-    mutationFn: serviceService.createService,
+  const availableServices = useQuery({
+    queryKey: ['available-services'],
+    queryFn: serviceService.getAvailableServices,
+  })
+
+  const updateServices = useMutation({
+    mutationFn: serviceService.updateDentistServices,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] })
+      queryClient.invalidateQueries({ queryKey: ['dentist-services'] })
     },
   })
 
-  const updateService = useMutation({
-    mutationFn: (service: Partial<Service>) => serviceService.updateService(service.id!, service),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] })
-    },
-  })
-
-  const deleteService = useMutation({
-    mutationFn: serviceService.deleteService,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] })
-    },
-  })
-
-  return { services, createService, updateService, deleteService }
+  return {
+    dentistServices,
+    availableServices,
+    updateServices,
+  }
 }
