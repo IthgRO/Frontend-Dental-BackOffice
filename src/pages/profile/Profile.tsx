@@ -25,7 +25,6 @@ interface ProfileFormData {
   email: string
   address: string
 }
-
 interface PasswordFormData {
   current_password: string
   new_password: string
