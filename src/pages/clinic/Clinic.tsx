@@ -35,7 +35,6 @@ const Clinic = () => {
   const handlePhotoSave = async (file: File) => {
     try {
       await uploadClinicPicture.mutateAsync(file)
-      message.success('Clinic photo updated successfully')
     } catch (error) {
       message.error('Failed to update clinic photo')
     }
